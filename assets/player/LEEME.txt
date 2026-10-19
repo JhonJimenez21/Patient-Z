@@ -1,0 +1,1 @@
+Modelo del jugador (Walking.fbx). Para cambiarlo, edita MODEL_PATH en scripts/player/player_model.gd

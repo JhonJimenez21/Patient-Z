@@ -1,0 +1,18 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player_stealth.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/player/inventory.gd" id="2_inv"]
+[ext_resource type="Script" path="res://scripts/player/third_person_camera.gd" id="3_cam"]
+[ext_resource type="Script" path="res://scripts/player/weapon_controller.gd" id="4_weapon"]
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_player")
+
+[node name="Inventory" type="Node" parent="."]
+script = ExtResource("2_inv")
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("3_cam")
+
+[node name="WeaponController" type="Node" parent="."]
+script = ExtResource("4_weapon")
