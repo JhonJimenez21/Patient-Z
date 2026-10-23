@@ -1,16 +1,15 @@
 extends CharacterBody3D
 ## Player of Patient Z: movement, crouch/stealth noise, health, infection and interaction.
-## Child nodes (see scenes/player/player.tscn):
-##   Inventory (inventory.gd) · CameraRig (third_person_camera.gd) · WeaponController (weapon_controller.gd)
+## Scene: scenes/player/player.tscn
+##   CollisionShape3D · Body (PlayerModel, Hand with the guns, FlashlightPivot/Flashlight)
+##   HurtSound · Inventory · CameraRig (SpringArm3D/Camera3D) · WeaponController (ShotSound)
 
 signal died
 
-const Builder = preload("res://scripts/systems/level_builder.gd")
-const PlayerModel = preload("res://scripts/player/player_model.gd")
 
-const WALK_SPEED := 3.4
-const RUN_SPEED := 6.0
-const CROUCH_SPEED := 1.7
+const WALK_SPEED := 2.8
+const RUN_SPEED := 5.0
+const CROUCH_SPEED := 1.4
 const INTERACT_DISTANCE := 2.6
 const STAND_HEIGHT := 1.8
 const CROUCH_HEIGHT := 1.1
@@ -46,35 +45,38 @@ var current_weapon: String:
 var _noise_timer := 0.0
 var _shot_noise := 0.0
 var _gravity: float = ProjectSettings.get_setting("physics/3d/default_gravity", 9.8)
-var _shape: CollisionShape3D
-var _body_pivot: Node3D
-var _model: Node3D
-var _flashlight: SpotLight3D
-var _flashlight_pivot: Node3D
-var _hurt_player: AudioStreamPlayer
+
+@onready var _shape: CollisionShape3D = %CollisionShape3D
+@onready var _body_pivot: Node3D = %Body
+@onready var _model: Node3D = %PlayerModel
+@onready var _hand: Node3D = %Hand
+@onready var _flashlight_pivot: Node3D = %FlashlightPivot
+@onready var _flashlight: SpotLight3D = %Flashlight
+@onready var _hurt_player: AudioStreamPlayer = %HurtSound
 
 
 func _ready() -> void:
 	add_to_group("player")
-	collision_layer = 2
-	collision_mask = 1 | 4
+	# The level rotates the player to face the boss; the camera takes that direction.
 	var start_yaw := rotation.y
 	rotation = Vector3.ZERO
-	_build_body()
-	camera_rig.setup(self, STAND_HEIGHT - 0.2, start_yaw)
-	weapons.setup(self, inventory, camera_rig, _body_pivot.get_node("Hand"))
-	GameManager.alarm_started.connect(func(): set_flashlight(true))
+	camera_rig.setup(self, start_yaw)
+	weapons.setup(self, inventory, camera_rig, _hand)
+	_model.set_gun_socket(_hand)                # with a weapon the gun follows the hands
+	set_flashlight(false)
+	GameManager.alarm_started.connect(_on_alarm_started)
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if dead:
 		if event is InputEventKey and event.pressed and event.physical_keycode == KEY_R:
+			# Back to the last save if there is one, otherwise restart the floor.
+			if SaveManager.has_save():
+				SaveManager.request_load()
 			get_tree().reload_current_scene()
 		return
-	if event.is_action_pressed("px_pause"):
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	elif event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+	if event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		get_viewport().set_input_as_handled()
 
@@ -86,6 +88,8 @@ func _physics_process(delta: float) -> void:
 	_body_pivot.rotation.y = camera_rig.yaw
 	_update_movement(delta, busy)
 	_model.update_animation(Vector2(velocity.x, velocity.z).length(), running, crouching)
+	_model.set_weapon(weapons.current_weapon)    # weapon pose on the upper body
+	_model.aiming = not busy and Input.is_action_pressed("px_aim")
 	_flashlight_pivot.rotation.x = camera_rig.pitch
 	if not busy and Input.is_action_just_pressed("px_flashlight"):
 		set_flashlight(not flashlight_on)
@@ -144,6 +148,7 @@ func _update_noise(delta: float) -> void:
 
 ## Called by the weapon controller on every shot.
 func register_shot() -> void:
+	_model.play_fire()                          # recoil animation
 	_shot_noise = NOISE_SHOT
 	NoiseManager.emit_noise(global_position, NOISE_SHOT, self)
 
@@ -259,55 +264,41 @@ func _dialogue_busy() -> bool:
 	return dialogue != null and dialogue.is_busy()
 
 
+# --- Save / load (player.json) -----------------------------------------------
+
+func get_save_data() -> Dictionary:
+	return {
+		"position": SaveManager.vec3_to_array(global_position),
+		"yaw": camera_rig.yaw,
+		"pitch": camera_rig.pitch,
+		"health": health,
+		"infection": infection,
+		"flashlight": flashlight_on,
+		"current_weapon": weapons.current_weapon,
+		"inventory": inventory.get_save_data(),
+	}
+
+
+func load_save_data(data: Dictionary) -> void:
+	global_position = SaveManager.array_to_vec3(data.get("position", []))
+	velocity = Vector3.ZERO
+	camera_rig.yaw = float(data.get("yaw", camera_rig.yaw))
+	camera_rig.pitch = float(data.get("pitch", camera_rig.pitch))
+	health = float(data.get("health", max_health))
+	infection = float(data.get("infection", 0.0))
+	inventory.load_save_data(data.get("inventory", {}))
+	var weapon: String = data.get("current_weapon", "")
+	if weapon != "" and inventory.has_weapon(weapon):
+		weapons.equip(weapon)
+	set_flashlight(bool(data.get("flashlight", false)))
+
+
 # --- Flashlight -----------------------------------------------------------
+
+func _on_alarm_started() -> void:
+	set_flashlight(true)
+
 
 func set_flashlight(on: bool) -> void:
 	flashlight_on = on
 	_flashlight.visible = on
-
-
-# --- Body -----------------------------------------------------------------
-
-func _build_body() -> void:
-	var capsule := CapsuleShape3D.new()
-	capsule.radius = 0.35
-	capsule.height = STAND_HEIGHT
-	_shape = CollisionShape3D.new()
-	_shape.shape = capsule
-	_shape.position.y = STAND_HEIGHT / 2.0
-	add_child(_shape)
-
-	# Body pivot (turns with the camera) holding the 3D model loaded by code.
-	_body_pivot = Node3D.new()
-	_body_pivot.name = "Body"
-	add_child(_body_pivot)
-	_model = PlayerModel.new()
-	_model.name = "PlayerModel"
-	_body_pivot.add_child(_model)
-
-	# Flashlight on the chest, aims up/down with the camera. [L] toggles it.
-	_flashlight_pivot = Node3D.new()
-	_flashlight_pivot.name = "FlashlightPivot"
-	_flashlight_pivot.position = Vector3(0.15, 1.35, -0.25)
-	_body_pivot.add_child(_flashlight_pivot)
-	_flashlight = SpotLight3D.new()
-	_flashlight.name = "Flashlight"
-	_flashlight.light_color = Color(1.0, 0.96, 0.85)
-	_flashlight.light_energy = 4.0
-	_flashlight.spot_range = 18.0
-	_flashlight.spot_angle = 28.0
-	_flashlight.spot_attenuation = 0.8
-	_flashlight.shadow_enabled = true
-	_flashlight_pivot.add_child(_flashlight)
-	set_flashlight(false)
-
-	var hand := Node3D.new()
-	hand.name = "Hand"
-	hand.position = Vector3(0.3, 1.25, -0.25)
-	_body_pivot.add_child(hand)
-
-	_hurt_player = AudioStreamPlayer.new()
-	_hurt_player.stream = Builder.noise_burst(0.15, 30.0, 0.5)
-	_hurt_player.pitch_scale = 0.5
-	_hurt_player.volume_db = -8.0
-	add_child(_hurt_player)

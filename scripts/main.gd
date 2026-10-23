@@ -1,12 +1,24 @@
 extends Node
 ## Game scene opened by the main menu (GAME_SCENE = "res://main.tscn").
-## It contains Floor 1 as a child (scenes/levels/laboratorio_piso1.tscn).
-## [Esc] frees the mouse; [Esc] + [M] goes back to the main menu.
+## It opens the right floor as its child:
+##   · a loaded saved game → the floor where it was saved
+##   · the stairs of a floor → GameManager.next_floor_scene
+##   · otherwise → first_floor (Floor 1)
+## [Esc] opens the pause menu of the floor (Resume · Save Game · Load Game · Main Menu).
 
-const MENU_SCENE := "res://scenes/ui/MainMenu.tscn"
+@export var first_floor: PackedScene = preload("res://scenes/levels/laboratorio_piso1.tscn")
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventKey and event.pressed and event.physical_keycode == KEY_M \
-			and Input.mouse_mode == Input.MOUSE_MODE_VISIBLE:
-		get_tree().change_scene_to_file(MENU_SCENE)
+func _ready() -> void:
+	var scene: PackedScene = first_floor
+	var path := ""
+	if SaveManager.pending_load:
+		path = SaveManager.pending_scene()
+	elif GameManager.next_floor_scene != "":
+		path = GameManager.next_floor_scene
+	GameManager.next_floor_scene = ""
+	if path != "" and ResourceLoader.exists(path):
+		scene = load(path)
+	if not SaveManager.pending_load and path == "":
+		GameManager.carry_player = {}      # new game / restart: start fresh
+	add_child(scene.instantiate())
