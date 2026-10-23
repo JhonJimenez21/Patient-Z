@@ -1,42 +1,22 @@
 extends StaticBody3D
-## Medical cabinet that can be opened once with [F]. Front faces local +Z.
-
-const Builder = preload("res://scripts/systems/level_builder.gd")
+## Medical cabinet that can be opened once with [F] (scenes/items/cabinet.tscn).
+## The floor scene sets `contents` and `cell` on each instance. Front faces local +Z.
 
 ## "syringe", "bandage", "ammo_rifle", "ammo_shotgun" or "" (empty)
-var contents := ""
+@export var contents := ""
+@export var cell := Vector2i(-1, -1)      # map cell, used as the cabinet id in the save
+
 var is_open := false
 
-var _hinge: Node3D
+@onready var _hinge: Node3D = %Hinge
 
 
-func setup(item: String) -> void:
-	contents = item
+func _ready() -> void:
 	add_to_group("interactable")
-
-	var white := Builder.material(Color(0.88, 0.9, 0.92), 0.4, 0.2)
-	var dark := Builder.material(Color(0.25, 0.27, 0.3), 0.6)
-	Builder.box(self, Vector3(1.0, 1.9, 0.5), Vector3(0, 0.95, 0), white)
-	Builder.box(self, Vector3(0.9, 1.75, 0.02), Vector3(0, 0.95, 0.24), dark)  # inside back
-	Builder.box(self, Vector3(0.9, 0.03, 0.4), Vector3(0, 1.0, 0.03), white)    # shelf
-	Builder.box(self, Vector3(0.9, 0.03, 0.4), Vector3(0, 1.45, 0.03), white)   # shelf
-
-	if contents == "syringe":
-		var glass := Builder.material(Color(0.7, 0.9, 1.0, 0.6), 0.1)
-		var syringe := Builder.cylinder(self, 0.03, 0.25, Vector3(0.1, 1.08, 0.1), glass)
-		syringe.rotation.z = PI / 2.0
-	elif contents != "":
-		var box_color := Color(0.85, 0.2, 0.2) if contents == "bandage" else Color(0.35, 0.4, 0.25)
-		Builder.box(self, Vector3(0.3, 0.15, 0.2), Vector3(0.1, 1.1, 0.05), Builder.material(box_color))
-
-	_hinge = Node3D.new()
-	_hinge.position = Vector3(-0.5, 0, 0.27)
-	add_child(_hinge)
-	var door_mat := Builder.material(Color(0.8, 0.83, 0.86), 0.35, 0.3)
-	Builder.box(_hinge, Vector3(1.0, 1.85, 0.04), Vector3(0.5, 0.95, 0), door_mat)
-	Builder.box(_hinge, Vector3(0.04, 0.3, 0.05), Vector3(0.9, 1.0, 0.04), dark)  # handle
-
-	Builder.box_collision(self, Vector3(1.0, 1.9, 0.5), Vector3(0, 0.95, 0))
+	add_to_group("cabinets")
+	%Syringe.visible = contents == "syringe"
+	%Bandages.visible = contents == "bandage"
+	%AmmoBox.visible = contents.begins_with("ammo")
 
 
 func get_prompt() -> String:
@@ -54,7 +34,33 @@ func interact(player: Node) -> void:
 	remove_from_group("interactable")
 	var tween := create_tween()
 	tween.tween_property(_hinge, "rotation:y", -1.9, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if contents == "syringe":
+		_take_item(%Syringe)
+	elif contents == "bandage":
+		_take_item(%Bandages)
+	_give_contents(player)
 
+
+## Opened cabinet without giving the item again (used when loading a save).
+func open_silently() -> void:
+	is_open = true
+	remove_from_group("interactable")
+	_hinge.rotation.y = -1.9
+	%Syringe.visible = false
+	%Bandages.visible = false
+
+
+## The item on the shelf (syringe.tscn / bandage.tscn) is seen for a moment, then rises and
+## vanishes (taken).
+func _take_item(item: Node3D) -> void:
+	var tween := create_tween()
+	tween.tween_interval(1.2)
+	tween.tween_property(item, "position:y", item.position.y + 0.25, 0.5).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(item, "scale", Vector3.ZERO, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.tween_callback(item.hide)
+
+
+func _give_contents(player: Node) -> void:
 	match contents:
 		"syringe":
 			GameManager.add_syringe()

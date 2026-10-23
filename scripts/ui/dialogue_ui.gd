@@ -1,26 +1,24 @@
 extends CanvasLayer
-## Dialogue box at the bottom of the screen with a typewriter effect.
+## Dialogue box at the bottom of the screen with a typewriter effect (scenes/ui/dialogue_ui.tscn).
 
 const CHARS_PER_SECOND := 45.0
 
 var active := false
 
-var _panel: PanelContainer
-var _name_label: Label
-var _text_label: Label
-var _hint_label: Label
 var _lines: Array = []
 var _index := 0
 var _on_finish := Callable()
 var _opened_at := 0
 var _closed_at := -10000
 
+@onready var _panel: PanelContainer = %Panel
+@onready var _name_label: Label = %NameLabel
+@onready var _text_label: Label = %TextLabel
+@onready var _hint_label: Label = %HintLabel
+
 
 func _ready() -> void:
-	layer = 20
 	add_to_group("dialogue_ui")
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	_build()
 	_panel.visible = false
 
 
@@ -81,46 +79,3 @@ func _show_line() -> void:
 	_text_label.visible_ratio = 0.0
 	_hint_label.text = "[E] continue" if _index < _lines.size() - 1 else "[E] close"
 
-
-func _build() -> void:
-	var root := Control.new()
-	root.set_anchors_preset(Control.PRESET_FULL_RECT)
-	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(root)
-
-	_panel = PanelContainer.new()
-	_panel.anchor_left = 0.18
-	_panel.anchor_right = 0.82
-	_panel.anchor_top = 1.0
-	_panel.anchor_bottom = 1.0
-	_panel.offset_top = -230
-	_panel.offset_bottom = -110
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.03, 0.05, 0.07, 0.88)
-	style.border_color = Color(0.4, 0.75, 0.85, 0.8)
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(16)
-	_panel.add_theme_stylebox_override("panel", style)
-	root.add_child(_panel)
-
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 6)
-	_panel.add_child(box)
-
-	_name_label = Label.new()
-	_name_label.add_theme_color_override("font_color", Color(0.45, 0.85, 0.95))
-	_name_label.add_theme_font_size_override("font_size", 20)
-	box.add_child(_name_label)
-
-	_text_label = Label.new()
-	_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_text_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_text_label.add_theme_font_size_override("font_size", 19)
-	box.add_child(_text_label)
-
-	_hint_label = Label.new()
-	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_hint_label.add_theme_color_override("font_color", Color(1, 1, 1, 0.6))
-	_hint_label.add_theme_font_size_override("font_size", 14)
-	box.add_child(_hint_label)

@@ -1,50 +1,47 @@
 extends Node
 ## Weapons of the player: equip, shoot (raycast from the camera) and reload.
+## Uses the nodes of scenes/player/player.tscn: Hand/RifleModel, Hand/ShotgunModel,
+## Hand/MuzzleLight and WeaponController/ShotSound.
 
-const Builder = preload("res://scripts/systems/level_builder.gd")
+const ImpactScene = preload("res://scenes/effects/impact.tscn")
 
 const WEAPONS := {
 	"rifle": {
-		"name": "M-9 Rifle", "mag_size": 24, "start_mag": 24, "start_reserve": 90,
+		"name": "M-9 Rifle", "mag_size": 24, "start_mag": 24, "start_reserve": 120,
 		"damage": 34.0, "pellets": 1, "spread": 0.008, "fire_delay": 0.13,
 		"automatic": true, "reload_time": 1.6, "recoil": 0.012,
 	},
 	"shotgun": {
-		"name": "Shotgun", "mag_size": 6, "start_mag": 6, "start_reserve": 18,
+		"name": "Shotgun", "mag_size": 6, "start_mag": 6, "start_reserve": 24,
 		"damage": 18.0, "pellets": 8, "spread": 0.06, "fire_delay": 0.85,
 		"automatic": false, "reload_time": 2.2, "recoil": 0.05,
 	},
 }
 
 var current_weapon := ""
+var _last_weapon := ""              # the one [Q] takes out again
 
 var _player: CharacterBody3D
 var _inventory: Node
 var _camera_rig: Node3D
 var _fire_cooldown := 0.0
 var _reload_timer := 0.0
-var _gun_model: Node3D
+var _models := {}                  # weapon id -> model node in the hand
 var _muzzle_light: OmniLight3D
-var _shot_player: AudioStreamPlayer
+
+@onready var _shot_player: AudioStreamPlayer = %ShotSound
 
 
-## hand: the node the gun is attached to (rotates with the body).
+## hand: the "Hand" node that carries the gun models (it follows the hands of the model).
 func setup(player: CharacterBody3D, inventory: Node, camera_rig: Node3D, hand: Node3D) -> void:
 	_player = player
 	_inventory = inventory
 	_camera_rig = camera_rig
-	_gun_model = Node3D.new()
-	hand.add_child(_gun_model)
-	_muzzle_light = OmniLight3D.new()
-	_muzzle_light.light_color = Color(1.0, 0.8, 0.4)
-	_muzzle_light.omni_range = 6.0
-	_muzzle_light.light_energy = 0.0
-	_muzzle_light.position = Vector3(0, 0, -0.9)
-	hand.add_child(_muzzle_light)
-	_shot_player = AudioStreamPlayer.new()
-	_shot_player.stream = Builder.noise_burst(0.25, 18.0, 0.9)
-	_shot_player.volume_db = -6.0
-	add_child(_shot_player)
+	_models = {"rifle": hand.get_node("RifleModel"), "shotgun": hand.get_node("ShotgunModel")}
+	for model in _models.values():          # layer 2: blood decals don't stain the guns
+		for mesh: MeshInstance3D in model.find_children("*", "MeshInstance3D", true, false):
+			mesh.layers = 2
+	_muzzle_light = hand.get_node("MuzzleLight")
 
 
 func give_weapon(id: String) -> void:
@@ -58,19 +55,30 @@ func add_ammo(id: String, amount: int) -> void:
 
 
 func equip(id: String) -> void:
+	if id != "":
+		_last_weapon = id
 	current_weapon = id
 	_reload_timer = 0.0
-	for child in _gun_model.get_children():
-		child.queue_free()
-	var gun_mat := Builder.material(Color(0.1, 0.1, 0.11), 0.45, 0.6)
-	var length := 0.75 if id == "rifle" else 0.85
-	Builder.box(_gun_model, Vector3(0.08, 0.1, length), Vector3(0, 0, -length / 2.0), gun_mat)
-	Builder.box(_gun_model, Vector3(0.06, 0.16, 0.08), Vector3(0, -0.1, -0.12), gun_mat)
+	for weapon_id in _models:
+		_models[weapon_id].visible = weapon_id == id
+
+
+## [Q]: put the weapon away (empty hands) or take it out again.
+func toggle_holster() -> void:
+	if current_weapon != "":
+		equip("")
+		GameManager.notify("Weapon put away")
+	elif _last_weapon != "" and _inventory.has_weapon(_last_weapon):
+		equip(_last_weapon)
+	elif _inventory.has_weapon("rifle"):
+		equip("rifle")
+	elif _inventory.has_weapon("shotgun"):
+		equip("shotgun")
 
 
 func weapon_text() -> String:
 	if current_weapon == "":
-		return "Unarmed"
+		return "Unarmed  [Q] take out weapon" if _last_weapon != "" else "Unarmed"
 	var a: Dictionary = _inventory.ammo[current_weapon]
 	var text := "%s  %d | %d" % [WEAPONS[current_weapon]["name"], a["mag"], a["reserve"]]
 	if _reload_timer > 0.0:
@@ -93,11 +101,15 @@ func update(delta: float, busy: bool) -> void:
 		equip("rifle")
 	if Input.is_action_just_pressed("px_weapon_2") and _inventory.has_weapon("shotgun"):
 		equip("shotgun")
+	if Input.is_action_just_pressed("px_holster"):
+		toggle_holster()
 	if current_weapon == "":
 		return
 	if Input.is_action_just_pressed("px_reload"):
 		_start_reload()
 
+	if _player.running:
+		return                      # can't shoot while running
 	var data: Dictionary = WEAPONS[current_weapon]
 	var wants_fire := Input.is_action_pressed("px_shoot") if data["automatic"] else Input.is_action_just_pressed("px_shoot")
 	if wants_fire and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and _fire_cooldown <= 0.0 and _reload_timer <= 0.0:
@@ -154,10 +166,15 @@ func _finish_reload() -> void:
 	a["reserve"] -= taken
 
 
+## Small flash where a bullet hits (red on flesh). Scene: scenes/effects/impact.tscn
 func _spawn_impact(pos: Vector3, flesh: bool) -> void:
-	var color := Color(0.6, 0.0, 0.0) if flesh else Color(1.0, 0.85, 0.5)
-	var mat := Builder.material(color, 0.5, 0.0, color, 2.0)
-	var spark := Builder.sphere(get_tree().current_scene, 0.05, pos, mat)
+	var spark: MeshInstance3D = ImpactScene.instantiate()
+	get_tree().current_scene.add_child(spark)
+	spark.global_position = pos
+	if flesh:
+		var mat: StandardMaterial3D = spark.get_surface_override_material(0)
+		mat.albedo_color = Color(0.6, 0.0, 0.0)
+		mat.emission = Color(0.6, 0.0, 0.0)
 	var tween := spark.create_tween()
 	tween.tween_property(spark, "scale", Vector3.ONE * 0.1, 0.25)
 	tween.tween_callback(spark.queue_free)

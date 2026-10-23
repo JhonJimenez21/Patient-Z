@@ -1,34 +1,19 @@
 extends Node3D
-## Over-the-shoulder camera. Child of the player, rotates with the mouse.
+## Over-the-shoulder camera (CameraRig in scenes/player/player.tscn).
+## Children: SpringArm3D → Camera3D. Rotates with the mouse.
 
 const MOUSE_SENSITIVITY := 0.0025
-const SHOULDER_OFFSET := Vector3(0.8, 0.1, 0)
-const DISTANCE := 2.1
 
 var yaw := 0.0
 var pitch := -0.15
-var camera: Camera3D
 
-var _spring: SpringArm3D
+@onready var camera: Camera3D = %Camera3D
+@onready var _spring: SpringArm3D = %SpringArm3D
 
 
-func setup(body: CollisionObject3D, height: float, start_yaw: float) -> void:
+func setup(body: CollisionObject3D, start_yaw: float) -> void:
 	yaw = start_yaw
-	position = Vector3(0, height, 0)
-	_spring = SpringArm3D.new()
-	_spring.position = SHOULDER_OFFSET
-	_spring.spring_length = DISTANCE
-	_spring.margin = 0.2
-	_spring.collision_mask = 1
-	var probe := SphereShape3D.new()
-	probe.radius = 0.2
-	_spring.shape = probe
-	_spring.add_excluded_object(body.get_rid())
-	add_child(_spring)
-	camera = Camera3D.new()
-	camera.fov = 70.0
-	camera.current = true
-	_spring.add_child(camera)
+	_spring.add_excluded_object(body.get_rid())   # the arm must not hit the player himself
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -41,8 +26,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _process(_delta: float) -> void:
 	rotation.y = yaw
-	if _spring:
-		_spring.rotation.x = pitch
+	_spring.rotation.x = pitch
 
 
 func set_height(height: float) -> void:

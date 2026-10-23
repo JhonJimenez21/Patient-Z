@@ -1,73 +1,52 @@
 extends Control
-## Main menu. Builds its own UI, shows the background image and plays the menu music.
-## If the image or the music file doesn't exist yet, the menu still works.
+## Main menu (scenes/ui/MainMenu.tscn).
+##   Main:      Play · Quit
+##   Play:      New Game · Continue · Back
+##   Continue:  list of saved games (load or delete) · Back
+## New Game always starts in a new save slot, so the saved games are never touched.
+## The layout and the button signals are in the scene. Drag your image into Background ›
+## Texture and your music into Music › Stream; if they are empty, BACKGROUND_IMAGE and MUSIC
+## are loaded when those files exist.
+
+const SaveSlotList = preload("res://scripts/ui/save_slot_list.gd")
 
 const GAME_SCENE := "res://main.tscn"
-const BACKGROUND_IMAGE := "res://assets/img/menu.jpg"
-const MUSIC := "res://assets/audio/Horror Game Menu Music 1 Redone.mp3"
-const TITLE := "PATIENT Z"
+const BACKGROUND_IMAGE := "res://assets/img/menu.png"
+const MUSIC := "res://assets/audio/menu_music.mp3"
+
+@onready var _main_panel: VBoxContainer = %MainPanel
+@onready var _play_panel: VBoxContainer = %PlayPanel
+@onready var _continue_button: Button = %ContinueButton
+@onready var _slots: VBoxContainer = %Slots
+@onready var _background: TextureRect = %Background
+@onready var _music: AudioStreamPlayer = %Music
 
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	set_anchors_preset(Control.PRESET_FULL_RECT)
-	_build_menu()
+	get_tree().paused = false
+	if _background.texture == null and ResourceLoader.exists(BACKGROUND_IMAGE):
+		_background.texture = load(BACKGROUND_IMAGE)
 	_play_music()
+	_show(_main_panel)
 
 
-func _build_menu() -> void:
-	if ResourceLoader.exists(BACKGROUND_IMAGE):
-		var background := TextureRect.new()
-		background.texture = load(BACKGROUND_IMAGE)
-		background.set_anchors_preset(Control.PRESET_FULL_RECT)
-		background.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		background.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-		add_child(background)
-	else:
-		var color := ColorRect.new()
-		color.color = Color(0.05, 0.05, 0.08)
-		color.set_anchors_preset(Control.PRESET_FULL_RECT)
-		add_child(color)
-
-	var shade := ColorRect.new()
-	shade.color = Color(0, 0, 0, 0.35)
-	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(shade)
-
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	add_child(center)
-
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 15)
-	center.add_child(box)
-
-	var title := Label.new()
-	title.text = TITLE
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 56)
-	title.add_theme_color_override("font_color", Color(0.85, 0.1, 0.1))
-	box.add_child(title)
-
-	var play_button := Button.new()
-	play_button.text = "Play"
-	play_button.custom_minimum_size = Vector2(220, 50)
-	play_button.pressed.connect(_on_play_button_pressed)
-	box.add_child(play_button)
-
-	var quit_button := Button.new()
-	quit_button.text = "Quit"
-	quit_button.custom_minimum_size = Vector2(220, 50)
-	quit_button.pressed.connect(_on_quit_button_pressed)
-	box.add_child(quit_button)
-
-	play_button.grab_focus()
+func _show(panel: Control) -> void:
+	_main_panel.visible = panel == _main_panel
+	_play_panel.visible = panel == _play_panel
+	_slots.visible = panel == _slots
+	if panel == _play_panel:
+		_continue_button.disabled = not SaveManager.has_any_save()
+	if panel == _slots:
+		_slots.open("load", "Continue · Saved Games")
+	elif panel.get_child_count() > 0:
+		SaveSlotList._focus.call_deferred(panel.get_child(0))
 
 
 func _play_music() -> void:
-	if not ResourceLoader.exists(MUSIC):
-		return
-	var stream: AudioStream = load(MUSIC)
+	if _music.stream == null and ResourceLoader.exists(MUSIC):
+		_music.stream = load(MUSIC)
+	var stream := _music.stream
 	if stream == null:
 		return
 	if stream is AudioStreamWAV:
@@ -75,13 +54,40 @@ func _play_music() -> void:
 		stream.loop_end = int(stream.get_length() * stream.mix_rate)
 	elif "loop" in stream:
 		stream.loop = true  # mp3 / ogg
-	var music := AudioStreamPlayer.new()
-	music.stream = stream
-	add_child(music)
-	music.play()
+	_music.play()
 
 
 func _on_play_button_pressed() -> void:
+	_show(_play_panel)
+
+
+func _on_back_button_pressed() -> void:
+	_show(_main_panel)
+
+
+func _on_slots_back_pressed() -> void:
+	_show(_play_panel)
+
+
+## New game in a new slot: the saved games are not touched.
+func _on_new_game_pressed() -> void:
+	SaveManager.start_new_game()
+	_go_to_game()
+
+
+func _on_continue_pressed() -> void:
+	_show(_slots)
+
+
+func _on_slot_chosen(slot_id: String) -> void:
+	if SaveManager.request_load(slot_id):
+		_go_to_game()
+	else:
+		push_error("The saved game could not be loaded.")
+		_slots.refresh()
+
+
+func _go_to_game() -> void:
 	if not ResourceLoader.exists(GAME_SCENE):
 		push_error("Scene not found: " + GAME_SCENE)
 		return

@@ -1,15 +1,25 @@
 extends StaticBody3D
-## The boss of Floor 1. Gives the syringe task, then the keycard.
-
-const Builder = preload("res://scripts/systems/level_builder.gd")
+## The boss of Floor 1 (scenes/npc/jefe.tscn). Gives the syringe task, then the keycard.
+## Model: assets/npc/doctor.fbx (node Model/Doctor). Its animation "Take 001" (writing on the
+## clipboard) plays in a loop, and he turns towards the player when you talk to him.
 
 const DialogueDB = preload("res://scripts/systems/dialogue_db.gd")
+const IDLE_ANIMATION := "Take 001"
+const CHARACTER_LAYER := 2        # blood decals don't stain him
+
+@onready var _model: Node3D = %Model
 
 
 func _ready() -> void:
 	add_to_group("interactable")
-	_build_body()
-	Builder.box_collision(self, Vector3(0.7, 1.8, 0.5), Vector3(0, 0.9, 0))
+	for mesh in _model.find_children("*", "MeshInstance3D", true, false):
+		mesh.layers = CHARACTER_LAYER
+	var players := _model.find_children("*", "AnimationPlayer", true, false)
+	if not players.is_empty():
+		var anim_player: AnimationPlayer = players[0]
+		if anim_player.has_animation(IDLE_ANIMATION):
+			anim_player.get_animation(IDLE_ANIMATION).loop_mode = Animation.LOOP_LINEAR
+			anim_player.play(IDLE_ANIMATION)
 
 
 func get_prompt() -> String:
@@ -53,22 +63,3 @@ func _face(target: Vector3) -> void:
 	if flat.distance_to(global_position) > 0.1:
 		look_at(flat, Vector3.UP)
 		rotate_y(PI)  # the model's front is +Z
-
-
-func _build_body() -> void:
-	var coat := Builder.material(Color(0.93, 0.94, 0.95), 0.8)
-	var pants := Builder.material(Color(0.15, 0.17, 0.22), 0.8)
-	var skin := Builder.material(Color(0.86, 0.68, 0.55), 0.7)
-	var hair := Builder.material(Color(0.55, 0.55, 0.57), 0.9)
-	var glass := Builder.material(Color(0.1, 0.1, 0.1), 0.3, 0.5)
-
-	Builder.box(self, Vector3(0.18, 0.8, 0.2), Vector3(-0.12, 0.4, 0), pants)
-	Builder.box(self, Vector3(0.18, 0.8, 0.2), Vector3(0.12, 0.4, 0), pants)
-	Builder.box(self, Vector3(0.52, 0.75, 0.3), Vector3(0, 1.15, 0), coat)          # torso
-	Builder.box(self, Vector3(0.56, 0.35, 0.32), Vector3(0, 0.75, 0), coat)          # coat tail
-	Builder.box(self, Vector3(0.13, 0.7, 0.15), Vector3(-0.34, 1.15, 0), coat)       # arms
-	Builder.box(self, Vector3(0.13, 0.7, 0.15), Vector3(0.34, 1.15, 0), coat)
-	Builder.sphere(self, 0.15, Vector3(0, 1.68, 0), skin)                            # head
-	Builder.box(self, Vector3(0.3, 0.08, 0.3), Vector3(0, 1.8, -0.02), hair)
-	Builder.box(self, Vector3(0.24, 0.05, 0.02), Vector3(0, 1.7, 0.15), glass)       # glasses
-	Builder.box(self, Vector3(0.1, 0.14, 0.02), Vector3(0.14, 1.3, 0.16), Builder.material(Color(0.2, 0.5, 0.9)))  # ID badge

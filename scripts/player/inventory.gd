@@ -33,6 +33,22 @@ func add_bandages(amount: int) -> void:
 	bandages += amount
 
 
+func get_save_data() -> Dictionary:
+	return {"bandages": bandages, "ammo": ammo.duplicate(true), "pending_ammo": _pending_ammo.duplicate()}
+
+
+func load_save_data(data: Dictionary) -> void:
+	bandages = int(data.get("bandages", bandages))
+	ammo = {}
+	var saved_ammo: Dictionary = data.get("ammo", {})
+	for id in saved_ammo:
+		ammo[id] = {"mag": int(saved_ammo[id].get("mag", 0)), "reserve": int(saved_ammo[id].get("reserve", 0))}
+	_pending_ammo = {}
+	var pending: Dictionary = data.get("pending_ammo", {})
+	for id in pending:
+		_pending_ammo[id] = int(pending[id])
+
+
 func take_bandage() -> bool:
 	if bandages <= 0:
 		return false
