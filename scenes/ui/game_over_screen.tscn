@@ -1,0 +1,149 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/game_over_screen.gd" id="1_xra47"]
+[ext_resource type="FontFile" path="res://assets/fonts/RubikWetPaint-Regular.ttf" id="2_ndg0r"]
+[ext_resource type="FontFile" path="res://assets/fonts/RockSalt-Regular.ttf" id="3_q5i70"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ending_drone.wav" id="4_r3cfu"]
+
+[sub_resource type="Gradient" id="Gradient_uigko"]
+colors = PackedColorArray(0.28, 0, 0, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_oa60g"]
+gradient = SubResource("Gradient_uigko")
+width = 512
+height = 512
+fill = 1
+fill_from = Vector2(0.5, 0.45)
+fill_to = Vector2(1, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jky2l"]
+bg_color = Color(0.12, 0.02, 0.02, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.05, 0.05, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_qk1ak"]
+bg_color = Color(0.6, 0.05, 0.05, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.25, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_acg15"]
+bg_color = Color(0.4, 0.03, 0.03, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.25, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="GameOverScreen" type="Control" unique_id=968925582]
+layout_mode = 3
+anchors_preset = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_xra47")
+
+[node name="Background" type="ColorRect" parent="." unique_id=70180840]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 1)
+
+[node name="Vignette" type="TextureRect" parent="." unique_id=672910341]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_oa60g")
+expand_mode = 1
+
+[node name="Content" type="VBoxContainer" parent="." unique_id=384653630]
+unique_name_in_owner = true
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_constants/separation = 26
+alignment = 1
+
+[node name="YouDied" type="Label" parent="Content" unique_id=39636345]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_ndg0r")
+theme_override_font_sizes/font_size = 150
+theme_override_colors/font_color = Color(0.75, 0.03, 0.03, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 5
+theme_override_constants/shadow_offset_y = 8
+text = "YOU DIED"
+horizontal_alignment = 1
+
+[node name="Thanks" type="Label" parent="Content" unique_id=2065215928]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_fonts/font = ExtResource("3_q5i70")
+theme_override_font_sizes/font_size = 30
+theme_override_colors/font_color = Color(0.82, 0.8, 0.76, 1)
+text = "Muchas gracias por haber jugado PATIENT Z"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Content" unique_id=1400467643]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="Buttons" type="HBoxContainer" parent="Content" unique_id=963380574]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 40
+alignment = 1
+
+[node name="PlayAgainButton" type="Button" parent="Content/Buttons" unique_id=222064797]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 64)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_jky2l")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_qk1ak")
+theme_override_styles/hover = SubResource("StyleBoxFlat_acg15")
+theme_override_colors/font_color = Color(0.9, 0.88, 0.85, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 26
+text = "Volver a jugar"
+
+[node name="QuitButton" type="Button" parent="Content/Buttons" unique_id=4013214]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(280, 64)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_jky2l")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_qk1ak")
+theme_override_styles/hover = SubResource("StyleBoxFlat_acg15")
+theme_override_colors/font_color = Color(0.9, 0.88, 0.85, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 26
+text = "Salir del juego"
+
+[node name="Drone" type="AudioStreamPlayer" parent="." unique_id=1108367503]
+stream = ExtResource("4_r3cfu")
+volume_db = -2.0
+autoplay = true
+
+[connection signal="pressed" from="Content/Buttons/PlayAgainButton" to="." method="_on_play_again_pressed"]
+[connection signal="pressed" from="Content/Buttons/QuitButton" to="." method="_on_quit_pressed"]

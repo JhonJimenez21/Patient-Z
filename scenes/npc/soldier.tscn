@@ -1,0 +1,162 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/npc/soldier.gd" id="1_hep6v"]
+[ext_resource type="PackedScene" path="res://assets/npc/soldier.fbx" id="2_wri2k"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/gunshot.wav" id="3_swtbj"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_d0110"]
+radius = 0.35
+height = 1.8
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ftcbx"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.75, 0.35, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_84xii"]
+radius = 0.1
+height = 0.32
+radial_segments = 8
+rings = 4
+
+[sub_resource type="Animation" id="Animation_nm5ef"]
+length = 0.18
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Model:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.04, 0.18),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, 0.01, 0.07), Vector3(0, 0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Model:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.04, 0.18),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0.06981317, 0, 0), Vector3(0, 0, 0)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Model/Muzzle/MuzzleFlash:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.06),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [true, false]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Model/Muzzle/MuzzleLight:light_energy")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [8.0, 0.0]
+}
+
+[sub_resource type="Animation" id="Animation_8gle3"]
+length = 3.2
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Model:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 1.6, 3.2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0, -0.012, 0.006), Vector3(0, 0, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Model:rotation")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 1.6, 3.2),
+"transitions": PackedFloat32Array(1, 1, 1),
+"update": 0,
+"values": [Vector3(0, 0, 0), Vector3(0.02094395, -0.02617994, 0), Vector3(0, 0, 0)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_4bjus"]
+_data = {
+&"fire": SubResource("Animation_nm5ef"),
+&"idle": SubResource("Animation_8gle3")
+}
+
+[node name="Soldier" type="StaticBody3D" unique_id=455987403]
+script = ExtResource("1_hep6v")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1294279759]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+shape = SubResource("CapsuleShape3D_d0110")
+
+[node name="Model" type="Node3D" parent="." unique_id=777575249]
+unique_name_in_owner = true
+
+[node name="ModernSoldier" type="Node3D" parent="Model" unique_id=282161211 instance=ExtResource("2_wri2k")]
+transform = Transform3D(0.31, 0, 0, 0, 0.31, 0, 0, 0, 0.31, 0, 0, 0)
+
+[node name="Muzzle" type="Node3D" parent="Model" unique_id=1652491187]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.04, 1.04, -0.7)
+
+[node name="MuzzleFlash" type="MeshInstance3D" parent="Model/Muzzle" unique_id=526212492]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, -1, 0, 1, -4.371139e-08, 0, 0, -0.12)
+visible = false
+material_override = SubResource("StandardMaterial3D_ftcbx")
+cast_shadow = 0
+mesh = SubResource("SphereMesh_84xii")
+
+[node name="MuzzleLight" type="OmniLight3D" parent="Model/Muzzle" unique_id=1229515558]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.2)
+light_color = Color(1, 0.8, 0.4, 1)
+light_energy = 0.0
+omni_range = 7.0
+
+[node name="WeaponLight" type="SpotLight3D" parent="Model/Muzzle" unique_id=1291149547]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 0.1)
+visible = false
+light_color = Color(1, 0.97, 0.9, 1)
+light_energy = 4.0
+light_volumetric_fog_energy = 1.5
+shadow_enabled = true
+spot_range = 22.0
+spot_attenuation = 0.9
+spot_angle = 17.0
+
+[node name="GunShot" type="AudioStreamPlayer3D" parent="." unique_id=41316885]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+stream = ExtResource("3_swtbj")
+volume_db = 6.0
+unit_size = 18.0
+max_distance = 120.0
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="." unique_id=1339791057]
+unique_name_in_owner = true
+libraries/ = SubResource("AnimationLibrary_4bjus")

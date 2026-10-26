@@ -1,0 +1,208 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/items/rooftop_door.gd" id="1_1ps8a"]
+[ext_resource type="Texture2D" path="res://assets/textures/rusty_metal.png" id="2_4b0nc"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/rifle_cock.wav" id="3_apq5q"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_58m6s"]
+albedo_color = Color(0.01, 0.01, 0.01, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_pv7mo"]
+size = Vector3(1.6, 2.5, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ldcsm"]
+albedo_color = Color(0.55, 0.5, 0.45, 1)
+albedo_texture = ExtResource("2_4b0nc")
+metallic = 0.55
+roughness = 0.6
+uv1_triplanar = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_n580d"]
+size = Vector3(0.15, 2.7, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_q21r6"]
+size = Vector3(0.15, 2.7, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cb5v7"]
+size = Vector3(1.85, 0.2, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3h1vw"]
+albedo_color = Color(0.75, 0.68, 0.6, 1)
+albedo_texture = ExtResource("2_4b0nc")
+metallic = 0.55
+roughness = 0.6
+uv1_scale = Vector3(1.2, 1.2, 1.2)
+uv1_triplanar = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_d2mqn"]
+size = Vector3(1.54, 2.48, 0.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_yx1i3"]
+albedo_color = Color(0.12, 0.12, 0.12, 1)
+metallic = 0.8
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_shl3d"]
+size = Vector3(1.1, 0.07, 0.07)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jfgpf"]
+albedo_color = Color(0.75, 0.6, 0.1, 1)
+metallic = 0.3
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_218f4"]
+size = Vector3(1.4, 0.35, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mvs07"]
+albedo_color = Color(0.8, 0.1, 0.05, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_62bnv"]
+size = Vector3(1.5, 0.12, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fvjhh"]
+albedo_color = Color(0.4, 0.38, 0.35, 1)
+metallic = 0.9
+roughness = 0.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_medqe"]
+size = Vector3(0.12, 0.15, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2v5md"]
+resource_local_to_scene = true
+albedo_color = Color(1, 0, 0, 1)
+roughness = 0.4
+emission_enabled = true
+emission = Color(1, 0, 0, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_o4ihv"]
+size = Vector3(0.05, 0.05, 0.02)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_olpr3"]
+albedo_color = Color(0.2, 0.2, 0.2, 1)
+metallic = 0.8
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_o70tf"]
+size = Vector3(0.25, 0.18, 0.2)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_fy8xd"]
+albedo_color = Color(1, 0.6, 0.25, 1)
+roughness = 0.4
+emission_enabled = true
+emission = Color(1, 0.6, 0.25, 1)
+emission_energy_multiplier = 5.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_56d3j"]
+radius = 0.07
+height = 0.14
+radial_segments = 24
+rings = 12
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1nvkf"]
+size = Vector3(1.85, 2.7, 0.35)
+
+[node name="RooftopDoor" type="StaticBody3D" unique_id=1502568974]
+script = ExtResource("1_1ps8a")
+
+[node name="Darkness" type="MeshInstance3D" parent="." unique_id=1396395324]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0.12)
+material_override = SubResource("StandardMaterial3D_58m6s")
+mesh = SubResource("BoxMesh_pv7mo")
+
+[node name="FrameLeft" type="MeshInstance3D" parent="." unique_id=832225687]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.85, 1.35, 0)
+material_override = SubResource("StandardMaterial3D_ldcsm")
+mesh = SubResource("BoxMesh_n580d")
+
+[node name="FrameRight" type="MeshInstance3D" parent="." unique_id=1172768846]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.85, 1.35, 0)
+material_override = SubResource("StandardMaterial3D_ldcsm")
+mesh = SubResource("BoxMesh_q21r6")
+
+[node name="FrameTop" type="MeshInstance3D" parent="." unique_id=37425611]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+material_override = SubResource("StandardMaterial3D_ldcsm")
+mesh = SubResource("BoxMesh_cb5v7")
+
+[node name="Leaf" type="Node3D" parent="." unique_id=1405705455]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.77, 0, -0.05)
+
+[node name="Panel" type="MeshInstance3D" parent="Leaf" unique_id=1577873002]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.77, 1.25, 0)
+material_override = SubResource("StandardMaterial3D_3h1vw")
+mesh = SubResource("BoxMesh_d2mqn")
+
+[node name="PushBar" type="MeshInstance3D" parent="Leaf" unique_id=1380293022]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8, 1.05, -0.09)
+material_override = SubResource("StandardMaterial3D_yx1i3")
+mesh = SubResource("BoxMesh_shl3d")
+
+[node name="Plate" type="MeshInstance3D" parent="Leaf" unique_id=1082831498]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.77, 1.8, -0.06)
+material_override = SubResource("StandardMaterial3D_jfgpf")
+mesh = SubResource("BoxMesh_218f4")
+
+[node name="PlateText" type="Label3D" parent="Leaf" unique_id=1935648838]
+unique_name_in_owner = true
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0.77, 1.8, -0.075)
+pixel_size = 0.004
+double_sided = false
+modulate = Color(0.05, 0.05, 0.05, 1)
+text = "ROOF ACCESS"
+font_size = 48
+outline_size = 0
+
+[node name="Hazard" type="MeshInstance3D" parent="Leaf" unique_id=2082199404]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.77, 0.25, -0.06)
+material_override = SubResource("StandardMaterial3D_mvs07")
+mesh = SubResource("BoxMesh_62bnv")
+
+[node name="Padlock" type="MeshInstance3D" parent="Leaf" unique_id=1528117445]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.35, 1, -0.14)
+material_override = SubResource("StandardMaterial3D_fvjhh")
+mesh = SubResource("BoxMesh_medqe")
+
+[node name="LockLight" type="MeshInstance3D" parent="Leaf" unique_id=1179976651]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.35, 1.12, -0.18)
+material_override = SubResource("StandardMaterial3D_2v5md")
+mesh = SubResource("BoxMesh_o4ihv")
+
+[node name="Warning" type="Label3D" parent="." unique_id=2099727175]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 2.85, -0.16)
+pixel_size = 0.004
+double_sided = false
+modulate = Color(0.9, 0.85, 0.75, 1)
+text = "AUTHORIZED PERSONNEL ONLY"
+font_size = 28
+outline_size = 0
+
+[node name="LampCage" type="MeshInstance3D" parent="." unique_id=1189890671]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.05, -0.15)
+material_override = SubResource("StandardMaterial3D_olpr3")
+mesh = SubResource("BoxMesh_o70tf")
+
+[node name="LampBulb" type="MeshInstance3D" parent="." unique_id=308532579]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -0.2)
+material_override = SubResource("StandardMaterial3D_fy8xd")
+mesh = SubResource("SphereMesh_56d3j")
+
+[node name="LampLight" type="OmniLight3D" parent="." unique_id=150234955]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.9, -0.5)
+light_color = Color(1, 0.6, 0.3, 1)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=886753509]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 0)
+shape = SubResource("BoxShape3D_1nvkf")
+
+[node name="UnlockSound" type="AudioStreamPlayer3D" parent="." unique_id=162519634]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -0.3)
+stream = ExtResource("3_apq5q")
+unit_size = 4.0
+pitch_scale = 0.6
