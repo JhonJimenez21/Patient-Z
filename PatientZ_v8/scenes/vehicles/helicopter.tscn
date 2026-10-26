@@ -1,0 +1,173 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/vehicles/helicopter.gd" id="1_7lmtr"]
+[ext_resource type="PackedScene" path="res://assets/vehicles/huey_helicopter.fbx" id="2_xeegh"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/helicopter_loop.wav" id="3_h3x5q"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_npei7"]
+albedo_color = Color(1, 0.05, 0.05, 1)
+roughness = 0.4
+emission_enabled = true
+emission = Color(1, 0.05, 0.05, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_qjrsa"]
+radius = 0.08
+height = 0.16
+radial_segments = 24
+rings = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0ahne"]
+albedo_color = Color(0.1, 1, 0.2, 1)
+roughness = 0.4
+emission_enabled = true
+emission = Color(0.1, 1, 0.2, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_s3dec"]
+radius = 0.08
+height = 0.16
+radial_segments = 24
+rings = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rj46h"]
+roughness = 0.4
+emission_enabled = true
+emission = Color(1, 1, 1, 1)
+emission_energy_multiplier = 8.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_jc6y4"]
+radius = 0.07
+height = 0.14
+radial_segments = 24
+rings = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uvafi"]
+albedo_color = Color(1, 0.05, 0.02, 1)
+roughness = 0.4
+emission_enabled = true
+emission = Color(1, 0.05, 0.02, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="SphereMesh" id="SphereMesh_m7ym0"]
+radius = 0.1
+height = 0.2
+radial_segments = 24
+rings = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_m43k8"]
+albedo_color = Color(1, 0.97, 0.9, 1)
+roughness = 0.4
+emission_enabled = true
+emission = Color(1, 0.97, 0.9, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_tnu1p"]
+top_radius = 0.16
+bottom_radius = 0.16
+height = 0.1
+radial_segments = 16
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_cvprn"]
+size = Vector3(2.9, 3, 6.4)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_1wjr6"]
+size = Vector3(1, 1.6, 6.4)
+
+[node name="Helicopter" type="Node3D" unique_id=1639043788]
+script = ExtResource("1_7lmtr")
+
+[node name="Model" type="Node3D" parent="." unique_id=1603317690]
+unique_name_in_owner = true
+transform = Transform3D(1.55, 0, 0, 0, 1.55, 0, 0, 0, 1.55, 0, 0, 0)
+
+[node name="Huey" type="Node3D" parent="Model" unique_id=1015054901 instance=ExtResource("2_xeegh")]
+
+[node name="Lights" type="Node3D" parent="." unique_id=1445935535]
+
+[node name="NavRed" type="MeshInstance3D" parent="Lights" unique_id=232752646]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.45, 1, 0.5)
+material_override = SubResource("StandardMaterial3D_npei7")
+mesh = SubResource("SphereMesh_qjrsa")
+
+[node name="NavRedLight" type="OmniLight3D" parent="Lights" unique_id=1396108029]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6, 1, 0.5)
+light_color = Color(1, 0.1, 0.1, 1)
+light_energy = 0.8
+omni_range = 3.0
+
+[node name="NavGreen" type="MeshInstance3D" parent="Lights" unique_id=745621888]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.45, 1, 0.5)
+material_override = SubResource("StandardMaterial3D_0ahne")
+mesh = SubResource("SphereMesh_s3dec")
+
+[node name="NavGreenLight" type="OmniLight3D" parent="Lights" unique_id=2107430082]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 1, 0.5)
+light_color = Color(0.1, 1, 0.2, 1)
+light_energy = 0.8
+omni_range = 3.0
+
+[node name="Strobe" type="MeshInstance3D" parent="Lights" unique_id=1416511735]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, -9.2)
+material_override = SubResource("StandardMaterial3D_rj46h")
+mesh = SubResource("SphereMesh_jc6y4")
+
+[node name="StrobeLight" type="OmniLight3D" parent="Lights" unique_id=995254037]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, -9.2)
+light_energy = 0.0
+omni_range = 9.0
+
+[node name="Beacon" type="MeshInstance3D" parent="Lights" unique_id=1147723705]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.25, -1.2)
+material_override = SubResource("StandardMaterial3D_uvafi")
+mesh = SubResource("SphereMesh_m7ym0")
+
+[node name="BeaconLight" type="OmniLight3D" parent="Lights" unique_id=1996198276]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5, -1.2)
+light_color = Color(1, 0.08, 0.04, 1)
+light_energy = 0.0
+omni_range = 10.0
+
+[node name="SearchLens" type="MeshInstance3D" parent="Lights" unique_id=1632490765]
+transform = Transform3D(1, 0, 0, 0, 0.34202015, -0.9396926, 0, 0.9396926, 0.34202015, 0, 0.35, 3)
+material_override = SubResource("StandardMaterial3D_m43k8")
+mesh = SubResource("CylinderMesh_tnu1p")
+
+[node name="Searchlight" type="SpotLight3D" parent="Lights" unique_id=2078454029]
+transform = Transform3D(-1, 1.5180806e-08, -8.609462e-08, 0, 0.9848077, 0.17364818, 8.742278e-08, 0.17364818, -0.9848077, 0, 0.3, 3.1)
+light_color = Color(1, 0.97, 0.9, 1)
+light_energy = 10.0
+light_volumetric_fog_energy = 1.5
+shadow_enabled = true
+spot_range = 40.0
+spot_attenuation = 0.9
+spot_angle = 16.0
+
+[node name="CabinLight" type="OmniLight3D" parent="Lights" unique_id=2066207088]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, -0.5)
+light_color = Color(1, 0.1, 0.05, 1)
+light_energy = 1.4
+omni_range = 3.5
+
+[node name="Hull" type="StaticBody3D" parent="." unique_id=1859649823]
+
+[node name="Cabin" type="CollisionShape3D" parent="Hull" unique_id=835977164]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.6)
+shape = SubResource("BoxShape3D_cvprn")
+
+[node name="Tail" type="CollisionShape3D" parent="Hull" unique_id=326960872]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, -5.6)
+shape = SubResource("BoxShape3D_1wjr6")
+
+[node name="Engine" type="AudioStreamPlayer3D" parent="." unique_id=1343707673]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+stream = ExtResource("3_h3x5q")
+volume_db = 4.0
+unit_size = 14.0
+autoplay = true
+max_distance = 160.0
